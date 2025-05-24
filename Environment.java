@@ -6,15 +6,18 @@ public class Environment <E>{
 
     Environment(){
         anc = null;
-        bindings = new HashMap<String,E>();
+        bindings = new HashMap<>();
     }
     
     Environment(Environment<E> ancestor){
-	// code missing
+        // code missing
+        this.anc = ancestor;
+        this.bindings = new HashMap<>();
+        // complete!
     }
 
     Environment<E> beginScope(){
-        return new Environment<E>(this);
+        return new Environment<>(this);
     }
     
     Environment<E> endScope(){
@@ -22,13 +25,25 @@ public class Environment <E>{
     }
 
     void assoc(String id, E bind) throws InterpreterError {
-	// code missing
+        // code missing
+        if (bindings.containsKey(id)) {
+            throw new InterpreterError("Variable already defined in this scope: " + id);
+        }
+        bindings.put(id, bind);
+        // complete!
     }
 
 
     E find(String id) throws InterpreterError {
-	// code missing
-	return null;
+        // code missing
+        if (bindings.containsKey(id)) {
+            return bindings.get(id);
+        } else if (anc != null) {
+            return anc.find(id);
+        } else {
+            throw new InterpreterError("Undefined variable: " + id);
+        }
+        // complete!
     }
 
 }
