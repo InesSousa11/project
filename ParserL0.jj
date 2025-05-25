@@ -105,7 +105,7 @@ ASTNode Start():
 ASTNode Let() :
 { Token n; 
   ASTNode t, e1, e2;
-  List<Bind> decls  = new ArrayList<Bind>();;
+  List<Bind> decls  = new ArrayList<Bind>();
 }
 { 
     (
@@ -224,22 +224,30 @@ ASTNode Fact() :
   ASTNode t, e1, e2;
   List<Bind> decls;
   ASTNode  body, alt;
+  List<String> params  = new ArrayList<String>();
+  List<ASTNode> inputs  = new ArrayList<ASTNode>();
 }
 {
    (
       n=<Num> { t = new ASTInt(Integer.parseInt(n.image)); } 
     | n=<TRUE> { t = new ASTBool(Boolean.parseBoolean(n.image));}
     | n=<FALSE> { t = new ASTBool(Boolean.parseBoolean(n.image));}
-    | n=<Id> { t = new ASTId(n.image); } 
+    | n=<Id> 
+        ( LOOKAHEAD(2) <LPAR> t = BA() <RPAR>{ inputs.add(t); } )*
+        { if(inputs.size() == 0) { t = new ASTId(n.image); }
+          else{
+              t = new ASTFuncCall(inputs, n.image);
+          }
+        }
     | <BOX> t=Fact() { t = new ASTBox(t); }
     | <DEREF> t=Fact() { t = new ASTDeref(t); }
     | <MINUS> t=Fact() { t = new ASTNeg(t); }
     | <NOT> t=Fact() {  /* missing AST for not */; t = null;  }
     | <IF> t=BA() <LBRA> e1=Let() <RBRA> <ELSE> <LBRA> e2=Let() <RBRA> {/* TBC */ t = null; }
     | <WHILE> t=BA() <LBRA> body=Let() <RBRA> { /* TBC */ t = null; }
-    | <FN> n=<Id> { t = null; }
-      	   	  (<COMMA> n = <Id>  {/* TBC */ })*
-		  <ARROW> <LBRA> e2 = Let() <RBRA> { /* TBC */ }
+    | <FN> n=<Id> { params.add(n.image); }
+      	   	  (<COMMA> n = <Id>  { params.add(n.image); })*
+		  <ARROW> <LBRA> e2 = Let() <RBRA> { t = new ASTFuncDef(params, e2); }
     | <PRINT> t=Fact() { /* missing AST for print */; t = null;  }
     | <PRINTLN> t=Fact() {/* missing AST for println */; t = null;  }
     | <LPAR> t=Let() <RPAR> 

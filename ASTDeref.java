@@ -18,12 +18,6 @@ public	class ASTDeref implements ASTNode	{
         }
         else if (v instanceof ASTDeref) {
             IValue v1 = v.eval(env);
-            while (v1 instanceof VSeq) {
-                if (((VSeq) v1).getval().size() != 1) {
-                    throw new InterpreterError("Can't have 0 or multiple instructions inside a box.");
-                }
-                v1 = ((VSeq) v1).getval().get(0);
-            }
             if (v1 instanceof VBox) {
                 return ((VBox) v1).getval();
             }
