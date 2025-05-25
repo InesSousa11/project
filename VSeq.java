@@ -16,6 +16,6 @@ class VSeq implements IValue {
         for (IValue v: values) {
             s.append(v.toStr()).append("\n");
         }
-        return s.toString();
+        return s.toString().stripTrailing();
     }
 }
