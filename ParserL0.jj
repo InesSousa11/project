@@ -70,6 +70,8 @@ TOKEN :
   |
   < ASSIGN : ":=" >
   |
+  < DEREF : "!" >
+  |
   < BOX : "box" >
   |
   < IF : "if" >
@@ -134,14 +136,21 @@ ASTNode Seq() :
 
 ASTNode SeqExp() :
 {Token op;
-  ASTNode t1, t2;}
+  ASTNode t1, t2;
+  List<ASTNode> exps = new ArrayList<ASTNode>();
+}
 {
-     t1 = BA() ( ( op=<ASSIGN> ) t2 = BA() 
- 		 {
-		 /* missing AST build */
-     } 
+     t1 = BA() { exps.add(t1); } ( ( op=<ASSIGN> ) t2 = BA()
+ 		 { exps.add(t2); } 
 		)*
-     { return t1; }  
+     { if(exps.size() <= 1) { return t1; }
+       else{
+           int size = exps.size();
+           ASTAssign t = new ASTAssign(exps.get(size - 2), exps.get(size - 1));
+           for(int i = size - 3; i >= 0; i--) {
+                t = new ASTAssign(exps.get(i), t);
+           }
+           return t; } }
 }
 
 ASTNode BA() :
@@ -223,7 +232,7 @@ ASTNode Fact() :
     | n=<FALSE> { t = new ASTBool(Boolean.parseBoolean(n.image));}
     | n=<Id> { t = new ASTId(n.image); } 
     | <BOX> t=Fact() { t = new ASTBox(t); }
-    | <STAR> t=Fact() { /* missing AST for deref */; t = null; }
+    | <DEREF> t=Fact() { t = new ASTDeref(t); }
     | <MINUS> t=Fact() { t = new ASTNeg(t); }
     | <NOT> t=Fact() {  /* missing AST for not */; t = null;  }
     | <IF> t=BA() <LBRA> e1=Let() <RBRA> <ELSE> <LBRA> e2=Let() <RBRA> {/* TBC */ t = null; }

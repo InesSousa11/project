@@ -10,10 +10,8 @@ public class Environment <E>{
     }
     
     Environment(Environment<E> ancestor){
-        // code missing
         this.anc = ancestor;
         this.bindings = new HashMap<>();
-        // complete!
     }
 
     Environment<E> beginScope(){
@@ -25,17 +23,10 @@ public class Environment <E>{
     }
 
     void assoc(String id, E bind) throws InterpreterError {
-        // code missing
-        if (bindings.containsKey(id)) {
-            throw new InterpreterError("Variable already defined in this scope: " + id);
-        }
         bindings.put(id, bind);
-        // complete!
     }
 
-
     E find(String id) throws InterpreterError {
-        // code missing
         if (bindings.containsKey(id)) {
             return bindings.get(id);
         } else if (anc != null) {
@@ -43,7 +34,6 @@ public class Environment <E>{
         } else {
             throw new InterpreterError("Undefined variable: " + id);
         }
-        // complete!
     }
 
 }
