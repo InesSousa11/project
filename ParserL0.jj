@@ -159,7 +159,7 @@ ASTNode BA() :
 {
      t1 = BM() ( ( op=<OR> ) t2 = BM() 
  		 {
-		 /* missing AST build */
+		 t1 = new ASTOr(t1, t2);
 		 } 
 		)*
      { return t1; } 
@@ -171,7 +171,7 @@ ASTNode BM() :
 {
      t1 = Rel() ( ( op=<AND> ) t2 = Rel() 
  		 {
-		 /* missing AST build */
+		 t1 = new ASTAnd(t1, t2);
  		 } 
 		)*
      { return t1; } 
@@ -183,9 +183,16 @@ ASTNode Rel() :
   ASTNode t1, t2;}
 {
      t1 = Exp() ( ( op=<EQ> | op=<GT> | op=<LT> | op=<GTEQ> | op=<LTEQ> | op=<DIF>) t2 = Exp() 
-     	  	  {
-		 /* missing AST build */
-		   } 
+     {
+      switch (op.kind) {
+        case EQ: t1 = new ASTEq(t1, t2); break;
+        case GT: t1 = new ASTGt(t1, t2); break;
+        case LT: t1 = new ASTLt(t1, t2); break;
+        case GTEQ: t1 = new ASTGteq(t1, t2); break;
+        case LTEQ: t1 = new ASTLteq(t1, t2); break;
+        case DIF: t1 = new ASTDif(t1, t2); break;
+      }
+		 } 
 		)?
      { return t1; } 
 }
@@ -244,7 +251,7 @@ ASTNode Fact() :
     | <MINUS> t=Fact() { t = new ASTNeg(t); }
     | <NOT> t=Fact() { t = new ASTNot(t); }
     | <IF> t=BA() <LBRA> e1=Let() <RBRA> <ELSE> <LBRA> e2=Let() <RBRA> { t = new ASTIf(t, e1, e2); }
-    | <WHILE> t=BA() <LBRA> body=Let() <RBRA> { /* TBC */ t = null; }
+    | <WHILE> t=BA() <LBRA> body=Let() <RBRA> { t = new ASTWhile(t, body); }
     | <FN> n=<Id> { params.add(n.image); }
       	   	  (<COMMA> n = <Id>  { params.add(n.image); })*
 		  <ARROW> <LBRA> e2 = Let() <RBRA> { t = new ASTFuncDef(params, e2); }
