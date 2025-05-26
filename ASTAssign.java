@@ -7,7 +7,12 @@ public class ASTAssign implements ASTNode {
             String s = ((ASTId) t1).id;
             if (e.find(s) instanceof VBox) {
                 IValue v = t2.eval(e);
-                e.assoc(s, v);
+                if (v instanceof VBox) {
+                    e.assoc(s, v);
+                }
+                else {
+                    e.assoc(s, new VBox(v));
+                }
                 return v;
             }
         }
