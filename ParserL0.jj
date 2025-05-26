@@ -18,6 +18,16 @@ SKIP :
 TOKEN :
 {
 
+  < MATCH : "match" >
+  |
+  < NIL : "nil" >
+  |
+  < ARROW2 : "->" >
+  |
+  < BAR : "|" >
+  |
+  < CONS : "::" >
+  |
   < LET : "let" >
   |
   < TRUE: "true" >
@@ -111,7 +121,7 @@ ASTNode Let() :
     (
     t = Seq()
     |
-    ((<LET>  n=<Id>  <EQUAL> e1 = BA() <SEMIC>
+    ((<LET>  n=<Id>  <EQUAL> e1 = List() <SEMIC>
       { decls.add(new Bind(n.image,e1)); }
      )+
         e2 = Seq() { t = new ASTLet(decls, e2); })
@@ -140,7 +150,7 @@ ASTNode SeqExp() :
   List<ASTNode> exps = new ArrayList<ASTNode>();
 }
 {
-     t1 = BA() { exps.add(t1); } ( ( op=<ASSIGN> ) t2 = BA()
+     t1 = List() { exps.add(t1); } ( ( op=<ASSIGN> ) t2 = List()
  		 { exps.add(t2); } 
 		)*
      { if(exps.size() <= 1) { return t1; }
@@ -151,6 +161,26 @@ ASTNode SeqExp() :
                 t = new ASTAssign(exps.get(i), t);
            }
            return t; } }
+}
+
+ASTNode List():
+{
+  ASTNode t, e1;
+  List<ASTNode> elements = new ArrayList<>();
+}
+{
+  (
+    t = BA() { elements.add(t); } (<CONS> e1 = BA() { elements.add(e1); })*
+      { int size = elements.size();
+        if (size > 1) {
+          t = new ASTList(elements.get(size - 2), elements.get(size - 1));
+          for(int i = size - 3; i >= 0; i--) {
+              t = new ASTList(elements.get(i), t);
+          }
+        }
+      }
+  )
+  { return t; }
 }
 
 ASTNode BA() :
@@ -220,14 +250,14 @@ ASTNode Term() :
 		 |
 		 op=<DIV> t2 = Fact()  { t1 = new ASTDiv(t1,t2); }
 		 |
-		 op = <LPAR> t2 = Exp () <RPAR>  { /* TBC */ } 
+		 op = <LPAR> t2 = Exp() <RPAR>  { /* TBC */ } 
 		)*
      { return t1; } 
 }
 
 
 ASTNode Fact() :
-{ Token n; 
+{ Token n, n1; 
   ASTNode t, e1, e2;
   List<Bind> decls;
   ASTNode  body, alt;
@@ -257,7 +287,10 @@ ASTNode Fact() :
 		  <ARROW> <LBRA> e2 = Let() <RBRA> { t = new ASTFuncDef(params, e2); }
     | <PRINT> t=Fact() { t = new ASTPrint(t); }
     | <PRINTLN> t=Fact() { t = new ASTPrintln(t); }
-    | <LPAR> t=Let() <RPAR> 
+    | <LPAR> t=Let() <RPAR>
+    | <NIL> { t = new ASTNil(); }
+    | <MATCH> t = Fact() <LBRA> <NIL> <ARROW2> body = Let() <BAR> n = <Id> <CONS> n1 = <Id> <ARROW2> alt = Let() <RBRA> 
+      { t = new ASTMatch(t, alt, body, n.image, n1.image); }
     )
    { return t; }
 }
