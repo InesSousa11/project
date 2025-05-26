@@ -242,7 +242,7 @@ ASTNode Fact() :
     | <BOX> t=Fact() { t = new ASTBox(t); }
     | <DEREF> t=Fact() { t = new ASTDeref(t); }
     | <MINUS> t=Fact() { t = new ASTNeg(t); }
-    | <NOT> t=Fact() {  /* missing AST for not */; t = null;  }
+    | <NOT> t=Fact() { t = new ASTNot(t); }
     | <IF> t=BA() <LBRA> e1=Let() <RBRA> <ELSE> <LBRA> e2=Let() <RBRA> {/* TBC */ t = null; }
     | <WHILE> t=BA() <LBRA> body=Let() <RBRA> { /* TBC */ t = null; }
     | <FN> n=<Id> { params.add(n.image); }
